@@ -44,7 +44,7 @@ void setup()
 
 	if (!display.initiliaze(i2c_ADDRESS)) throw "Display did not initialize properly";
 
-	xbee.connect();
+	xbee.connect(&display);
 }
 
 void loop()
@@ -73,7 +73,7 @@ void loop()
 	}
 	else
 	{
-		if (actionButton.isPressed()) xbee.connect();
+		if (actionButton.isPressed()) xbee.connect(&display);
 	}
 	
 	display.update(xbee.isConnected(), currentChannel, currentBandwidth, firmwareVersion, selectedChannel, selectedBandwidth);
@@ -84,84 +84,13 @@ void loop()
 
 
 
-// // Sends an AT command to the XBee. Command is the two character identifier that the XBee uses to determine what to reply with or what to program
-// // When reading, there are no parameters so you can leave that blank
-// // When programming the XBee, the parameters are whatever values you are trying to set ('C', 'F', '555', '3332', etc)
-// void sendATCommand(const char *command, const char *parameters = NO_PARAMETERS);
-
-// // Uses sendATCommand with no parameters, but waits for all the returning Serial data and puts it into the char buffer
-// // The delayMs determines how long the program waits for the Serial signal to come back
-// // If there is no Serial data to be read, the program puts a -1 in index zero of the buffer
-// void readATCommand(char *buf, const char *command, int delayMs);
-
-// void updateFirmware();
-
-// Adafruit_SH1106G display = Adafruit_SH1106G(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire);
-
-// Debounce channelButton{CHANNEL_IN_PIN, DEBOUNCE_DELAY};
-// Debounce bandwidthButton{BANDWIDTH_IN_PIN, DEBOUNCE_DELAY};
-// Debounce actionButton{ACTION_PIN, DEBOUNCE_DELAY};
-
-// void setup() {
-//   Serial.begin(9600);
-//   while (!Serial) {
-//     ; // wait for serial port to connect. Needed for native USB port only
-//   }
-//   // firmwareXbee.begin(115200);
-//   Serial1.begin(9600); 
-
 //   pinMode(RESET_PIN, OUTPUT);
 
 //   resetXbee();   
 
-//   delay(250);
-//   display.begin(i2c_Address, true);
-
-//   display.clearDisplay();
-//   display.display(); // need this for the display to actually change
-//   display.setTextSize(1);
-//   display.setTextColor(SH110X_WHITE);
-
-//   // Attempts to connect to the XBee as the program boots up
-//   connectToXBee();
-// }
-
-// char currentChannel[2] = "C";
-// char currentBandwidth[5] = "555";
-// char firmwareVersion[5] = "";
-
-// // the nulls are so that when selections are initialized they are set to either 1 or 2, instead of 0 because that gave a weird bug that this fixes
-// enum ChannelSelections {CNULL, C, F};
-// enum BandwidthSelections {BNULL, B555, B3332};
-
-// ChannelSelections selectedChannel = ChannelSelections::C;
-// BandwidthSelections selectedBandwidth = BandwidthSelections::B555;
-
-// bool xbeeFound = false;
 
 // bool tryUpdateFirmware = true;
 
-// void loop() {
-//   // There are two states the program can be in -- with an XBee, or without
-//   if (xbeeFound) {
-//     programXBee();
-//     pingXBee();
-//     updateDisplay();
-//   }
-//   else {
-//     // Displays the "No XBee" screen
-//     display.clearDisplay();
-//     display.setCursor(0, 0);
-//     normalColor();
-//     display.print("       ");
-//     invertedColor();
-//     display.println(F("No XBee"));
-//     display.display();
-
-//     // Will attempt to connect to the XBee when one isn't connected if the user presses the action button
-//     if (actionButton.GetState() == LOW) connectToXBee();
-//   }
-// }
 
 // unsigned long previousTime;
 
@@ -206,51 +135,7 @@ void loop()
 //   // }
 //   // display.display();
 //   // delay(1000);
-  
-// }
 
-// void programXBee() {
-//   // // If the channel button is pressed, switch the selected channel
-//   // if (channelButton.GetState() == LOW) {
-//   //   if (selectedChannel == ChannelSelections::C) selectedChannel = ChannelSelections::F;
-//   //   else selectedChannel = ChannelSelections::C;
-//   // }
-//   // // If the bandwidth button is pressed, switch the selected bandwidth
-//   // if (bandwidthButton.GetState() == LOW) {
-//   //   if (selectedBandwidth == BandwidthSelections::B555) selectedBandwidth = BandwidthSelections::B3332;
-//   //   else selectedBandwidth = BandwidthSelections::B555;
-//   // }
-//   // // If the action button is NOT pressed, do not program the XBee
-//   // if (actionButton.GetState() == HIGH) return;
-
-//   // if (selectedChannel == ChannelSelections::C) sendATCommand(CHANNEL_AT_CMD, "C");
-//   // else sendATCommand(CHANNEL_AT_CMD, "F");
-//   // sendATCommand(WRITE_AT_CMD); // writes (WR) the data to the XBee's flash (can only do 10,000 times per XBee but I don't think that would ever happen -- just something to note)
-//   // // Need a delay to wait for the Serial data to come back from the XBee. Not sure how long exactly it will take, but the whole program isn't intensive so better to wait longer than not
-//   // delay(50);
-//   // // Flushes the Serial buffer from the "OK" signal the write sends back
-//   // while (xbee.available()) { xbee.read(); }
-
-//   // if (selectedBandwidth == BandwidthSelections::B555) sendATCommand(BANDWIDTH_AT_CMD, "555");
-//   // else sendATCommand(BANDWIDTH_AT_CMD, "3332");
-//   // sendATCommand(WRITE_AT_CMD);
-//   // delay(50);
-//   // while (xbee.available()) { xbee.read(); }
-// }
-
-// void pingXBee() {
-//   // // Flushes the Serial buffer just incase -- probably really don't need this but it is a safety net
-//   // while (xbee.available()) xbee.read();
-
-//   // readATCommand(currentChannel, 1, CHANNEL_AT_CMD, 20);
-//   // // readATCommand puts -1 in index zero of the buffer if there was no Serial buffer to read, which means the program could no longer communicate with the XBee
-//   // if (currentChannel == -1) xbeeFound = false;
-
-//   // readATCommand(currentBandwidth, 4, BANDWIDTH_AT_CMD, 40);
-//   // if (currentBandwidth[0] == -1) xbeeFound = false;
-  
-//   // readATCommand(firmwareVersion, 4, FIRMWARE_VERSION_AT_CMD, 40);
-//   // if (firmwareVersion[0] == -1) xbeeFound = false;
 
 //   // if (tryUpdateFirmware) {
 //   //   if (firmwareVersion[1] != LATEST_FIRMWARE[1] || firmwareVersion[2] != LATEST_FIRMWARE[2] || firmwareVersion[3] != LATEST_FIRMWARE[3]) {
@@ -259,78 +144,6 @@ void loop()
 //   // }
 // }
 
-// void updateDisplay() {
-//   // Clears all previous text
-//   display.clearDisplay();
-
-//   normalColor();
-//   display.setCursor(0, 0);
-//   display.print(F("Channel: "));
-//   display.println(currentChannel);
-
-//   display.print(F("Bandwidth: "));
-//   display.println(currentBandwidth);
-
-//   display.print(F("Firmware: "));
-//   display.println(firmwareVersion);
-  
-//   display.println();
-
-//   display.println(F("Desired Channel: ")); // C or F
-//   display.print("     ");
-//   // Sets either normal or inverted depending on which is selected
-
-//   setSelectedColor(ChannelSelections::C, selectedChannel);
-//   display.print(F(" C "));
-
-//   normalColor();
-//   display.print(F("      "));
-
-//   setSelectedColor(ChannelSelections::F, selectedChannel);
-//   display.println(F(" F "));
-
-//   normalColor();
-//   display.println(F("Desired Bandwidth: ")); // 555 or 3332
-//   display.print(F("    "));
-//   setSelectedColor(BandwidthSelections::B555, selectedBandwidth);
-//   display.print(F(" 555 "));
-
-//   normalColor();
-//   display.print(F("   "));
-
-//   setSelectedColor(BandwidthSelections::B3332, selectedBandwidth);
-//   display.println(F(" 3332 "));
-
-//   display.display();
-// }
-
-// void sendATCommand(const char *command, const char *parameters) {
-//   // // Need the "AT" before every command to get the attention of the XBee
-//   // xbee.write("AT");
-//   // // Immediately after the "AT" needs to be the command characters
-//   // xbee.write(command);
-//   // // If there are any parameters, write them immediately after the command characters
-//   // if (parameters != NO_PARAMETERS) xbee.write(parameters);
-//   // // Every command ends in the carriage return
-//   // xbee.write('\r');
-//   // xbee.flush();
-// }
-
-// void readATCommand(char *buf, int size, const char *command, int delayMs) {
-//   // // Sends the getter AT command with no parameters
-//   // sendATCommand(command);
-//   // delay(delayMs);
-//   // int count = 0;
-//   // // Adds the collected Serial data to the buffer
-//   // while (xbee.available()) {
-//   //   char read = xbee.read();
-//   //   if (count == size) continue;
-//   //   buf[count] = read;
-//   //   count++;
-//   // }
-//   // // If there is no Serial data, the program is no longer talking to the XBee, which means index zero should be -1
-//   // if (count == 0) buf[0] = -1;
-// }
 
 // // #define SOH 0x01
 // // #define EOT 0x04
@@ -441,21 +254,6 @@ void loop()
 
 // }
 
-// void normalColor()
-// {
-//   display.setTextColor(SH110X_WHITE);
-// }
-
-// void invertedColor()
-// {
-//   display.setTextColor(SH110X_BLACK, SH110X_WHITE);
-// }
-
-// void setSelectedColor(int var, int selected)
-// {
-//   if (var == selected) invertedColor();
-//   else normalColor();
-// }
 
 // void resetXbee() {
 //   digitalWrite(RESET_PIN, LOW);

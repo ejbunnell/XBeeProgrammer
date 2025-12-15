@@ -4,25 +4,21 @@ Display::Display(int width, int height) : Adafruit_SH1106G(width, height) {}
 
 bool Display::initiliaze(int i2c_address)
 {
-    if (!begin(i2c_address, true)) return false;
+    if (!begin(i2c_address, true))
+        return false;
 
-    clearDisplay();
+    clear();
     setTextSize(1);
-    setTextColor(WHITE);
-    setCursor(0, 0);
     display();
     return true;
 }
 
-void Display::update(bool is_xbee_connected, std::string currentChannel, std::string currentBandwidth, std::string firmwareVersion, 
+void Display::update(bool is_xbee_connected, std::string currentChannel, std::string currentBandwidth, std::string firmwareVersion,
                      ChannelSelections selectedChannel, BandwidthSelections selectedBandwidth)
 {
     if (is_xbee_connected)
     {
-        clearDisplay();
-
-        setColorInverted(false);
-        setCursor(0, 0);
+        clear();
         print(F("Channel: "));
         println(currentChannel.c_str());
 
@@ -31,7 +27,7 @@ void Display::update(bool is_xbee_connected, std::string currentChannel, std::st
 
         print(F("Firmware: "));
         println(firmwareVersion.c_str());
-        
+
         println();
 
         println(F("Desired Channel: ")); // C or F
@@ -63,15 +59,32 @@ void Display::update(bool is_xbee_connected, std::string currentChannel, std::st
     }
     else
     {
-        clearDisplay();
-        setCursor(0, 0);
-        setColorInverted(false);
-        print("       ");
+        clear();
+        print(F("       "));
         setColorInverted(true);
-        println("No XBee");
+        println(F("No XBee"));
         display();
     }
-    
+}
+
+void Display::displayDots(uint64_t length)
+{
+    uint64_t oldTime = millis();
+    while ((millis() - oldTime) < length)
+    {
+        if (millis() % 200 == 0)
+        {
+            print(".");
+            display();
+        }
+    }
+}
+
+void Display::clear()
+{
+    clearDisplay();
+    setCursor(0, 0);
+    setColorInverted(false);
 }
 
 void Display::setColorInverted(bool inversion)
@@ -88,6 +101,8 @@ void Display::setColorInverted(bool inversion)
 
 void Display::setSelectedColor(int var, int selected)
 {
-    if (var == selected) setColorInverted(true);
-    else setColorInverted(false);
+    if (var == selected)
+        setColorInverted(true);
+    else
+        setColorInverted(false);
 }

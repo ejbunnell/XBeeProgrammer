@@ -16,6 +16,8 @@ public:
     bool initiliaze(int i2c_address);
     void update(bool is_xbee_connected, std::string currentChannel, std::string currentBandwidth, std::string firmwareVersion, 
                      ChannelSelections selectedChannel, BandwidthSelections selectedBandwidth);
+    void displayDots(uint64_t length);
+    void clear();
 
 private:
     void setColorInverted(bool inversion);

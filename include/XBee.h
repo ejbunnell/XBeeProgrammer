@@ -4,6 +4,8 @@
 #include <vector>
 #include <string>
 
+#include "Display.h"
+
 #include "ChannelSelections.h"
 
 #define COMMAND_CHARACTERS "+++" //  The default command character needed to enter command mode
@@ -25,7 +27,7 @@ public:
 
     // Attempt to connect to the XBee by sending the Command Character (CC), '+' three times with one second (GT) of no communication before and after
     // The XBee will then respond with "OK\r", which tells us that we are connected. If it does not respond, the screen goes to a "No XBee" screen and waits for the user to press the action button to try again
-    bool connect();
+    bool connect(Display *display);
     // Returns whether the XBee is currently connected to the ESP32
     bool isConnected();
     // Takes the currently selected options for both channel and bandwidth and writes (WR) them to the XBee
