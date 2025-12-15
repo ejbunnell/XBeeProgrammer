@@ -91,59 +91,12 @@ void loop()
 
 // bool tryUpdateFirmware = true;
 
-
-// unsigned long previousTime;
-
-// void displayDots() {
-//   previousTime = millis();
-//   while ((millis() - previousTime ) < 1100) {
-//     if (millis() % 200 == 0) {
-//       display.print(F("."));
-//       display.display();
-//     }
-//   }
-// }
-
-// void connectToXBee() {
-//   // // Clears the buffer - probably not needed, but ensures nothing in the way of the "OK" signal
-//   // while (xbee.available()) xbee.read();
-//   // display.setCursor(0, 0);
-//   // display.clearDisplay();
-//   // normalColor();
-//   // display.print(F("Initializing XBee"));
-//   // display.display();
-//   // // Waits the one second before (plus a little extra) and displays dots to show something is happening
-//   // displayDots();
-//   // // Sends the command character three times to the XBee
-//   // xbee.write("+++", 3);
-//   // // Waits the one second after (plus a little extra) and displays dots to show something is happening
-//   // displayDots();
-
-//   // display.clearDisplay();
-//   // display.setCursor(0, 0);
-//   // if (xbee.available()) {
-//   //   if (xbee.find("OK\r")) {
-//   //     xbeeFound = true;
-//   //     display.println(F("Xbee has successfully entered Command Mode"));
-//   //   }
-//   //   else {
-//   //     display.println(F("Xbee did not confirm entering Command Mode"));
-//   //   }
-//   // }
-//   // else {
-//   //   display.println(F("Xbee was not found"));
-//   // }
-//   // display.display();
-//   // delay(1000);
-
-
 //   // if (tryUpdateFirmware) {
 //   //   if (firmwareVersion[1] != LATEST_FIRMWARE[1] || firmwareVersion[2] != LATEST_FIRMWARE[2] || firmwareVersion[3] != LATEST_FIRMWARE[3]) {
 //   //     updateFirmware();
 //   //   }
 //   // }
 // }
-
 
 // // #define SOH 0x01
 // // #define EOT 0x04
@@ -166,7 +119,6 @@ void loop()
 // //   uint8_t packet[128];
 // //   uint8_t packetNum = 1;
 
-// //   // 1️⃣ Wait for bootloader to send 'C'
 // //   unsigned long start = millis();
 // //   while (millis() - start < 5000) {
 // //     if (serial.available() && serial.read() == 'C') break;
@@ -176,7 +128,7 @@ void loop()
 // //     int read = firmware.read(packet, 128);
 
 // //     if (read <= 0) {
-// //       // 2️⃣ Send EOT
+
 // //       serial.write(EOT);
 // //       while (serial.read() != ACK);
 // //       return true;
@@ -185,7 +137,6 @@ void loop()
 // //     // pad short packet
 // //     for (int i = read; i < 128; i++) packet[i] = 0x1A;
 
-// //     // 3️⃣ Build and send packet
 // //     serial.write(SOH);
 // //     serial.write(packetNum);
 // //     serial.write(~packetNum);
@@ -194,7 +145,6 @@ void loop()
 // //     serial.write(crc >> 8);
 // //     serial.write(crc & 0xFF);
 
-// //     // 4️⃣ Wait for ACK
 // //     int r = -1;
 // //     unsigned long t = millis();
 // //     while (millis() - t < 2000) {
