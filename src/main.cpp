@@ -27,6 +27,13 @@ Debounce channelButton{CHANNEL_IN_PIN, DEBOUNCE_DELAY};
 Debounce bandwidthButton{BANDWIDTH_IN_PIN, DEBOUNCE_DELAY};
 Debounce actionButton{ACTION_PIN, DEBOUNCE_DELAY};
 
+std::string currentChannel = "C";
+std::string currentBandwidth = "555";
+std::string firmwareVersion = "2014";
+
+ChannelSelections selectedChannel = ChannelSelections::C;
+BandwidthSelections selectedBandwidth = BandwidthSelections::B555;
+
 void setup()
 {
 	Serial.begin(9600);
@@ -42,71 +49,40 @@ void setup()
 
 void loop()
 {
-	display.update();
+	if (xbee.isConnected())
+	{
+		if (channelButton.isPressed())
+		{
+			if (selectedChannel == ChannelSelections::C) selectedChannel = ChannelSelections::F;
+			else selectedChannel = ChannelSelections::C;
+		}
+		if (bandwidthButton.isPressed())
+		{
+			if (selectedBandwidth == BandwidthSelections::B555) selectedBandwidth = BandwidthSelections::B3332;
+			else selectedBandwidth = BandwidthSelections::B555;
+		}
+		if (actionButton.isPressed())
+		{
+			xbee.program(selectedChannel, selectedBandwidth);
+		}
 
-	// if (channelButton.IsPressed()) Serial.println("Channel Pressed");
-	// if (bandwidthButton.IsPressed()) Serial.println("BW Pressed");
-	// if (actionButton.IsPressed()) Serial.println("Action Pressed");
+		std::vector<std::string> pingResults = xbee.ping();
+		currentChannel = pingResults[0];
+		currentBandwidth = pingResults[1];
+		firmwareVersion = pingResults[2];
+	}
+	else
+	{
+		if (actionButton.isPressed()) xbee.connect();
+	}
+	
+	display.update(xbee.isConnected(), currentChannel, currentBandwidth, firmwareVersion, selectedChannel, selectedBandwidth);
 }
 
 // // https://docs.digi.com//resources/documentation/digidocs/90002273/default.htm#concepts/c_90002273_start.htm?TocPath=Digi%2520XBee%25C2%25AE%25203%2520802.15.4%2520RF%2520Module%257C_____0
 // // "C:\Users\Elliott\AppData\Local\Digi\XCTU-NG\radio_firmwares\XB3-24A\XB3-24A_2014-th.gbl" -- firmware location
 
-// #include <Adafruit_GFX.h>
-// #include <Adafruit_SH110X.h>
-// #include <Stream.h>
-// // #include <SPIFFS.h>
 
-// #include "Debounce.h"
-
-// #define i2c_Address 0x3c // This specific display uses this address
-// #define SCREEN_WIDTH 128 // OLED display width, in pixels
-// #define SCREEN_HEIGHT 64 // OLED display height, in pixels
-
-// #define CHANNEL_IN_PIN 2 // The pin to connect the switch that toggles between channel 'C' and 'F'
-// #define BANDWIDTH_IN_PIN 3 // The pin to connect the switch that toggles between bandwidth '555' and '3332'
-// #define ACTION_PIN 4 // The pin to connect the button that both connects to the XBee and programs it with the selected settings
-
-// // only the following can be used for RX:
-// // 10, 11, 12, 13, 50, 51, 52, 53, 62, 63, 64, 65, 66, 67, 68, 69
-// #define XBEE_RX 10 // The pin to connect the XBee's TX (transmit)
-// #define XBEE_TX 11 // The pin to connect the XBee's RX (receive)
-
-// #define RESET_PIN 7
-
-// #define DEBOUNCE_DELAY 40 // This is the delay for the debounce for the three inputs. Higher value means more time required to pass before the program will allow the button to be pressed again. It's in ms
-
-// #define CHANNEL_AT_CMD "CH" // The two letter AT (attention) identifier for the channel command
-// #define BANDWIDTH_AT_CMD "ID" // The two letter AT (attention) identifier for the bandwidth (or pan ID) command
-// #define FIRMWARE_VERSION_AT_CMD "VR" // The two letter AT (attention) identifier for the firmware version command
-// #define WRITE_AT_CMD "WR" // The two letter AT (attention) identifier for the write-to-flash command
-// #define INVOKE_BOOTLOADER_AT_CMD "%P"
-
-// #define NO_PARAMETERS "____NO_PARAMETERS____" // A constant char array that allows the sendATCommand function to have a default value for parameters
-
-// #define LATEST_FIRMWARE "2014" // The latest firmware version for 802.15.4
-
-// // Sets the color of the text to white and the background to black
-// void normalColor();
-// // Sets the color of the text to black and the background white
-// void invertedColor();
-// // For selections, the color of the text is inverted
-// // Var will be the option and selected will be the currently selected option
-// // For example, if var is 0 and selected is 0, the text will be inverted. Otherwise, the text will be normal
-// void setSelectedColor(int var, int selected);
-
-// // Attempt to connect to the XBee by sending the Command Character (CC), '+' three times with one second (GT) of no communication before and after
-// // The XBee will then respond with "OK\r", which tells us that we are connected. If it does not respond, the screen goes to a "No XBee" screen and waits for the user to press the action button to try again
-// void connectToXBee();
-
-// void resetXbee();
-
-// // Takes the currently selected options for both channel and bandwidth and writes (WR) them to the XBee
-// void programXBee();
-// // Pings the XBee to both get the current values of the channel and bandwidth and the make sure that the XBee stays in Command Mode by pinging it within the Command Mode Timeout (CT)
-// void pingXBee();
-// // Both updates the current channel and bandwidth of the XBee and the user-selected channel and bandwidth
-// void updateDisplay();
 
 // // Sends an AT command to the XBee. Command is the two character identifier that the XBee uses to determine what to reply with or what to program
 // // When reading, there are no parameters so you can leave that blank

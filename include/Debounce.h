@@ -7,10 +7,10 @@ class Debounce {
   public:
     Debounce(int pin, unsigned int debounceDelay);
     
-    bool IsPressed();
+    bool isPressed();
     
   private:
-    int GetState();
+    int getState();
 
     int pin;
     int state = HIGH;
