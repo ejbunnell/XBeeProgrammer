@@ -1,11 +1,14 @@
 #include "XBee.h"
 
-XBee::XBee(uint8_t uart_nr, int reset_pin) : HardwareSerial(uart_nr)
+
+XBee::XBee(uint8_t uart_nr, int reset_pin, Display *display) : HardwareSerial(uart_nr)
 {
     this->reset_pin = reset_pin;
+    this->display = display;
+    resetXBee();
 }
 
-bool XBee::connect(Display *display)
+bool XBee::connect()
 {
     is_connected = false;
 
@@ -18,14 +21,19 @@ bool XBee::connect(Display *display)
     display->clear();
     if (available())
     {
-        if (find("OK\r"))
+        if (find("OK"))
         {
             is_connected = true;
             display->println(F("XBee has successfully entered Command Mode"));
+            updateFirmware();
         }
         else
         {
             display->println(F("XBee did not confirm entering Command Mode"));
+
+            bool firmwareUpdateSuccess = updateFirmware(false);
+            
+            is_connected = firmwareUpdateSuccess;
         }
     }
     else
@@ -97,9 +105,79 @@ std::vector<std::string> XBee::ping()
     return results;
 }
 
-void XBee::updateFirmware()
+bool XBee::updateFirmware(bool invokeBootloader)
 {
-    // Implementation of updating the firmware
+    if (invokeBootloader)
+    {
+        std::vector<std::string> pingResults = ping();
+        std::string currentFirmware = pingResults[2];
+        // if (currentFirmware == LATEST_FIRMWARE) return;
+        display->clear();
+        display->println(F("Invoking Bootloader"));
+        display->display();
+        delay(250);
+
+        sendATCommand(INVOKE_BOOTLOADER_AT_CMD);
+        updateBaudRate(115200);
+        ping();
+
+        if (!find("BL"))
+        {
+            display->println(F("XBee did not enter Bootloader Mode"));
+            display->display();
+            updateBaudRate(9600);
+            delay(1000);
+            return false;
+        }
+
+        display->println(F("XBee in Bootloader Mode"));
+        display->display();
+        delay(250);
+    }
+    else
+    {
+        updateBaudRate(115200);
+    }
+    delay(100);
+    while (available())
+    {
+        Serial.print((char)read());
+    }
+    display->clear();
+    display->println(F("Initiating Firmware \nUpdate"));
+    display->display();
+    write('1');
+
+    sendXmodemFromFlash();
+
+    delay(100);
+
+    std::string response;
+    while (available())
+    {
+        response.push_back((char)read());
+    }
+    Serial.println(response.c_str()); // "Serial upload complete"
+
+    write('2');
+
+    delay(100);
+
+    updateBaudRate(9600);
+
+    delay(100);
+
+    while (available())
+    {
+
+        char resp = read();
+        Serial.print(resp);
+    }
+
+    delay(100);
+    
+
+    return true;
 }
 
 void XBee::sendATCommand(const char *command, const char *parameters)
@@ -122,4 +200,11 @@ void XBee::readATCommand(std::string *buf, const char *command, int delay_ms)
         char readChar = read();
         buf->push_back(readChar);
     }
+}
+
+void XBee::resetXBee()
+{
+    digitalWrite(reset_pin, LOW);
+    delay(10);
+    digitalWrite(reset_pin, HIGH);
 }

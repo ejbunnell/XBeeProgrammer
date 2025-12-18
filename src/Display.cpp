@@ -54,7 +54,6 @@ void Display::update(bool is_xbee_connected, std::string currentChannel, std::st
 
         setSelectedColor(BandwidthSelections::B3332, selectedBandwidth);
         println(F(" 3332 "));
-
         display();
     }
     else

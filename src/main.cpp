@@ -19,9 +19,9 @@
 
 #define DEBOUNCE_DELAY 40 // This is the delay for the debounce for the three inputs. Higher value means more time required to pass before the program will allow the button to be pressed again. It's in ms
 
-XBee xbee{2, RESET_PIN};
-
 Display display{SCREEN_WIDTH, SCREEN_HEIGHT};
+
+XBee xbee{2, RESET_PIN, &display};
 
 Debounce channelButton{CHANNEL_IN_PIN, DEBOUNCE_DELAY};
 Debounce bandwidthButton{BANDWIDTH_IN_PIN, DEBOUNCE_DELAY};
@@ -44,7 +44,7 @@ void setup()
 
 	if (!display.initiliaze(i2c_ADDRESS)) throw "Display did not initialize properly";
 
-	xbee.connect(&display);
+	xbee.connect();
 }
 
 void loop()
@@ -73,7 +73,7 @@ void loop()
 	}
 	else
 	{
-		if (actionButton.isPressed()) xbee.connect(&display);
+		if (actionButton.isPressed()) xbee.connect();
 	}
 	
 	display.update(xbee.isConnected(), currentChannel, currentBandwidth, firmwareVersion, selectedChannel, selectedBandwidth);
@@ -98,66 +98,24 @@ void loop()
 //   // }
 // }
 
-// // #define SOH 0x01
-// // #define EOT 0x04
-// // #define ACK 0x06
-// // #define NAK 0x15
-// // #define CAN 0x18
-// // #define CRC_REQUEST 'C'
+// // 
+// // 
+// // 
+// // 
+// // 
+// // 
 
-// // uint16_t crc16(const uint8_t *buf, uint16_t len) {
-// //   uint16_t crc = 0;
-// //   while (len--) {
-// //     crc ^= (uint16_t)*buf++ << 8;
-// //     for (uint8_t i = 0; i < 8; i++)
-// //       crc = (crc & 0x8000) ? (crc << 1) ^ 0x1021 : crc << 1;
-// //   }
-// //   return crc;
-// // }
+// // 
+// // 
+// // 
+// // 
+// // 
+// // 
+// // 
+// // 
+// // 
 
-// // bool sendXmodemCRC(Stream &serial, File &firmware) {
-// //   uint8_t packet[128];
-// //   uint8_t packetNum = 1;
 
-// //   unsigned long start = millis();
-// //   while (millis() - start < 5000) {
-// //     if (serial.available() && serial.read() == 'C') break;
-// //   }
-
-// //   while (true) {
-// //     int read = firmware.read(packet, 128);
-
-// //     if (read <= 0) {
-
-// //       serial.write(EOT);
-// //       while (serial.read() != ACK);
-// //       return true;
-// //     }
-
-// //     // pad short packet
-// //     for (int i = read; i < 128; i++) packet[i] = 0x1A;
-
-// //     serial.write(SOH);
-// //     serial.write(packetNum);
-// //     serial.write(~packetNum);
-
-// //     uint16_t crc = crc16(packet, 128);
-// //     serial.write(crc >> 8);
-// //     serial.write(crc & 0xFF);
-
-// //     int r = -1;
-// //     unsigned long t = millis();
-// //     while (millis() - t < 2000) {
-// //       if (serial.available()) {
-// //         r = serial.read();
-// //         break;
-// //       }
-// //     }
-// //     if (r != ACK) return false;
-
-// //     packetNum++;
-// //   }
-// // }
 
 // void updateFirmware() {
 //   // while (true) {
@@ -202,11 +160,4 @@ void loop()
 //   // firmwareXbee.end();
 //   // xbee.begin(9600);
 
-// }
-
-
-// void resetXbee() {
-//   digitalWrite(RESET_PIN, LOW);
-//   delay(10);
-//   digitalWrite(RESET_PIN, HIGH);
 // }
