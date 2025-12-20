@@ -86,6 +86,16 @@ void Display::clear()
     setColorInverted(false);
 }
 
+void Display::printOneLine(const char *text, uint16_t delayTime, bool clear)
+{
+    if (clear)
+        this->clear();
+    print(text);
+    display();
+    delay(delayTime);
+}
+
+
 void Display::setColorInverted(bool inversion)
 {
     if (inversion)

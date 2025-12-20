@@ -18,6 +18,7 @@ public:
                      ChannelSelections selectedChannel, BandwidthSelections selectedBandwidth);
     void displayDots(uint64_t length);
     void clear();
+    void printOneLine(const char *text, uint16_t delayTime, bool clear = true);
 
 private:
     void setColorInverted(bool inversion);

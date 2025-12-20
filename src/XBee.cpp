@@ -18,22 +18,17 @@ bool XBee::connect()
     write("+++");
     display->displayDots(1100);
 
-    display->clear();
     if (available())
     {
         if (find("OK"))
         {
             is_connected = true;
-            display->println(F("XBee has successfully entered Command Mode"));
-            display->display();
-            delay(1000);
+            display->printOneLine("XBee has successfully entered Command Mode", 1000);
             updateFirmware();
         }
         else
         {
-            display->println(F("XBee did not confirm entering Command Mode"));
-            display->display();
-            delay(1000);
+            display->printOneLine("XBee did not confirm entering Command Mode", 1000);
 
             bool firmwareUpdateSuccess = updateFirmware(false);
             
@@ -42,9 +37,7 @@ bool XBee::connect()
     }
     else
     {
-        display->println(F("XBee was not found"));
-        display->display();
-        delay(1000);
+        display->printOneLine("XBee was not found", 1000);
     }
 
     
@@ -116,11 +109,8 @@ bool XBee::updateFirmware(bool invokeBootloader)
     {
         std::vector<std::string> pingResults = ping();
         std::string currentFirmware = pingResults[2];
-        if (currentFirmware.compare(LATEST_FIRMWARE) == 0) return true;
-        display->clear();
-        display->println(F("Invoking Bootloader"));
-        display->display();
-        delay(500);
+        if (currentFirmware.compare(LATEST_FIRMWARE_VERSION) == 0) return true;
+        display->printOneLine("Invoking \nBootloader Mode\n", 500);
 
         sendATCommand(INVOKE_BOOTLOADER_AT_CMD);
         updateBaudRate(115200);
@@ -128,50 +118,42 @@ bool XBee::updateFirmware(bool invokeBootloader)
 
         if (!find("BL"))
         {
-            display->println(F("XBee did not enter Bootloader Mode"));
-            display->display();
+            display->printOneLine("XBee not in \nBootloader Mode", 1000, false);
             updateBaudRate(9600);
-            delay(1000);
+            delay(100);
             return false;
         }
-
-        display->println(F("XBee in Bootloader Mode"));
-        display->display();
-        delay(500);
+        display->printOneLine("XBee in \nBootloader Mode", 500, false);
     }
     else
     {
         updateBaudRate(115200);
         ping();
-        display->clear();
-        display->println(F("Checking Bootloader"));
-        display->display();
-        delay(500);
+        display->printOneLine("Checking Bootloader \nMode", 500);
         if (!find("BL"))
         {
-            display->println(F("Unknown issue with XBee"));
-            display->display();
+            display->printOneLine("XBee not in \nBootloader Mode", 1000);
             updateBaudRate(9600);
-            delay(1000);
+            delay(100);
             return false;
         }
         else
         {
-            display->println(F("XBee in Bootloader Mode"));
-            display->display();
-            delay(500);
+            display->printOneLine("XBee in Bootloader \nMode", 500);
         }
     }
     delay(100);
 
-    display->clear();
-    display->println(F("Initiating Firmware \nUpdate"));
-    display->display();
-    delay(250);
+    display->printOneLine("Starting firmware \nupload", 500);
     write('1');
     flush();
 
-    sendXmodemFromFlash();
+    if (!sendXmodemFromFlash())
+    {
+        display->printOneLine("Firmware upload \nfailed", 1000);
+        updateBaudRate(9600);
+        return false;
+    }
 
     delay(100);
 
@@ -182,16 +164,19 @@ bool XBee::updateFirmware(bool invokeBootloader)
     }
     if (response.find("Serial upload complete") == std::string::npos)
     {
-        display->clear();
-        display->println(F("Firmware Update \nFailed"));
-        display->display();
-        delay(2000);
+        display->printOneLine("Firmware upload \nfailed", 1000);
         updateBaudRate(9600);
         return false;
+    }
+    else
+    {
+        display->printOneLine("Firmware upload \nsuccessful", 1000);
     }
 
     write('2');
     flush();
+
+    display->printOneLine("Loading firmware", 500);
 
     delay(1000);
 
@@ -237,4 +222,88 @@ void XBee::resetXBee()
     digitalWrite(reset_pin, LOW);
     delay(10);
     digitalWrite(reset_pin, HIGH);
+}
+
+uint16_t XBee::crc16(const uint8_t *buf, uint16_t len)
+{
+    uint16_t crc = 0;
+    while (len--) {
+        crc ^= (uint16_t)*buf++ << 8;
+        for (uint8_t i = 0; i < 8; i++)
+            crc = (crc & 0x8000) ? (crc << 1) ^ 0x1021 : crc << 1;
+    }
+    return crc;
+}
+
+bool XBee::sendXmodemFromFlash() 
+{
+    const uint8_t *data = _binary_data_firmware_gbl_start;
+    size_t length = _binary_data_firmware_gbl_end - _binary_data_firmware_gbl_start;
+    uint8_t packet[128];
+    uint8_t block = 1;
+    size_t offset = 0;
+
+    // Wait for 'C'
+    unsigned long start = millis();
+    while (millis() - start < 5000) {
+        if (available() && read() == 'C') break;
+    }
+    int count = 0;
+    const int totalCount = std::ceil((float)length / 128.0f);
+    while (offset < length) {
+        size_t chunk = min((size_t)128, length - offset);
+        memset(packet, 0x1A, 128);
+        memcpy(packet, data + offset, chunk);
+
+        uint16_t crc = crc16(packet, 128);
+
+        write(0x01); // SOH
+        write(block);
+        write(~block);
+        write(packet, 128);
+        write(crc >> 8);
+        write(crc & 0xFF);
+
+        // wait for ACK
+        unsigned long t = millis();
+        bool resendLastPacket = false;
+        while (millis() - t < 2000) 
+        {
+            if (available())
+            {
+                char resp = read();
+                if (resp == 0x06) break; // ACK
+                else if (resp == 0x15) 
+                {
+                    resendLastPacket = true; // NAK
+                    break;
+                }
+            }
+        }
+        if (resendLastPacket) continue;
+
+        offset += chunk;
+        block++;
+        
+        count++;
+        
+        display->clear();
+        display->println(F("Updating firmware:"));
+        display->printf("%4.2f%% done", (((float)count / (float)totalCount) * 100.0f));
+        display->display();
+    }
+
+    write(0x04); // EOT
+    while (true)
+    {
+        if (available())
+        {
+            char resp = read();
+            if (resp == 0x06) return true;
+            else if (resp == 0x15) 
+            {
+                write(0x04); // EOT
+            }
+        }
+    }
 }

@@ -6,6 +6,7 @@
 #include <vector>
 #include <string>
 #include <cstring>
+#include <math.h>
 
 #include "Display.h"
 
@@ -21,8 +22,10 @@
 
 #define NO_PARAMETERS "____NO_PARAMETERS____" // A constant char array that allows the sendATCommand function to have a default value for parameters
 
-extern const uint8_t _binary_data_firmware_gbl_start[] asm("_binary_data_firmware_gbl_start");
-extern const uint8_t _binary_data_firmware_gbl_end[] asm("_binary_data_firmware_gbl_end");
+#define LATEST_FIRMWARE_VERSION "2014" // The latest firmware version for 802.15.4
+
+extern const uint8_t _binary_data_firmware_gbl_start[] asm("_binary_data_firmware" LATEST_FIRMWARE_VERSION "_gbl_start");
+extern const uint8_t _binary_data_firmware_gbl_end[] asm("_binary_data_firmware" LATEST_FIRMWARE_VERSION "_gbl_end");
 
 class XBee : public HardwareSerial
 {
@@ -52,82 +55,12 @@ private:
 
     void resetXBee();
 
-    uint16_t crc16(const uint8_t *buf, uint16_t len) 
-    {
-        uint16_t crc = 0;
-        while (len--) {
-            crc ^= (uint16_t)*buf++ << 8;
-            for (uint8_t i = 0; i < 8; i++)
-            crc = (crc & 0x8000) ? (crc << 1) ^ 0x1021 : crc << 1;
-        }
-        return crc;
-    }
+    uint16_t crc16(const uint8_t *buf, uint16_t len);
 
-    bool sendXmodemFromFlash() 
-    {
-        const uint8_t *data = _binary_data_firmware_gbl_start;
-        size_t length = _binary_data_firmware_gbl_end - _binary_data_firmware_gbl_start;
-        uint8_t packet[128];
-        uint8_t block = 1;
-        size_t offset = 0;
-
-        Serial.print(length);
-
-        // Wait for 'C'
-        unsigned long start = millis();
-        while (millis() - start < 5000) {
-            if (available() && read() == 'C') break;
-        }
-        int count = 0;
-        const int totalCount = 2765;
-        const int sections = 16;
-        const int sectional = totalCount / 20;
-        while (offset < length) {
-            size_t chunk = min((size_t)128, length - offset);
-            memset(packet, 0x1A, 128);
-            memcpy(packet, data + offset, chunk);
-
-            uint16_t crc = crc16(packet, 128);
-
-            write(0x01);        // SOH
-            write(block);
-            write(~block);
-            write(packet, 128);
-            write(crc >> 8);
-            write(crc & 0xFF);
-
-            // wait for ACK
-            unsigned long t = millis();
-            while (millis() - t < 2000) 
-            {
-                if (available() && read() == 0x06) break;
-            }
-
-            offset += chunk;
-            block++;
-            
-
-            count++;
-            
-            display->clear();
-
-            display->printf("%4.2f%%", (((float)count / (float)totalCount) * 100.0f));
-            display->display();
-        }
-
-        write(0x04); // EOT
-        // while (read() != 0x06);
-
-        Serial.printf("Count: %d\n", count);
-        Serial.flush();
-
-        return true;
-    }
+    bool sendXmodemFromFlash();
 
     int reset_pin;
     bool is_connected = false;
-
-    const std::string LATEST_FIRMWARE = "2014"; // The latest firmware version for 802.15.4
 
     Display *display;
 };
