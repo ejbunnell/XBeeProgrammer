@@ -1,5 +1,7 @@
 #pragma once
 
+// C:\Users\Elliott\AppData\Local\Digi\XCTU-NG\radio_firmwares\XB3-24A\XB3-24A_2014-th.gbl --- location of the firmware file
+
 #include <Arduino.h>
 #include <vector>
 #include <string>
