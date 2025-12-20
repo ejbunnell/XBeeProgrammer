@@ -3,6 +3,7 @@
 #include <Arduino.h>
 #include <vector>
 #include <string>
+#include <cstring>
 
 #include "Display.h"
 
@@ -17,8 +18,6 @@
 #define INVOKE_BOOTLOADER_AT_CMD "%P"
 
 #define NO_PARAMETERS "____NO_PARAMETERS____" // A constant char array that allows the sendATCommand function to have a default value for parameters
-
-#define LATEST_FIRMWARE "2014" // The latest firmware version for 802.15.4
 
 extern const uint8_t _binary_data_firmware_gbl_start[] asm("_binary_data_firmware_gbl_start");
 extern const uint8_t _binary_data_firmware_gbl_end[] asm("_binary_data_firmware_gbl_end");
@@ -70,6 +69,8 @@ private:
         uint8_t block = 1;
         size_t offset = 0;
 
+        Serial.print(length);
+
         // Wait for 'C'
         unsigned long start = millis();
         while (millis() - start < 5000) {
@@ -78,7 +79,7 @@ private:
         int count = 0;
         const int totalCount = 2765;
         const int sections = 16;
-        const int sectional = 2765 / 20;
+        const int sectional = totalCount / 20;
         while (offset < length) {
             size_t chunk = min((size_t)128, length - offset);
             memset(packet, 0x1A, 128);
@@ -106,19 +107,14 @@ private:
 
             count++;
             
-            if (count % sectional == 0)
-            {   
-                display->clear();
-                display->printf("[%s%s]", 
-                    std::string((count / sectional), '=').c_str(), 
-                    std::string((sections - (count / sectional)), '-').c_str());
-            }
-            display->printf("%0d%%\r", (int)((float)(count / totalCount) * 100));
+            display->clear();
+
+            display->printf("%4.2f%%", (((float)count / (float)totalCount) * 100.0f));
             display->display();
         }
 
         write(0x04); // EOT
-        while (read() != 0x06);
+        // while (read() != 0x06);
 
         Serial.printf("Count: %d\n", count);
         Serial.flush();
@@ -126,11 +122,10 @@ private:
         return true;
     }
 
-
     int reset_pin;
     bool is_connected = false;
 
+    const std::string LATEST_FIRMWARE = "2014"; // The latest firmware version for 802.15.4
+
     Display *display;
 };
-
-

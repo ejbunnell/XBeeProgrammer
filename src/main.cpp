@@ -70,6 +70,7 @@ void loop()
 		currentChannel = pingResults[0];
 		currentBandwidth = pingResults[1];
 		firmwareVersion = pingResults[2];
+
 	}
 	else
 	{
