@@ -93,7 +93,7 @@ std::vector<std::string> XBee::ping()
 
     for (auto &str : results)
     {
-        if (str.empty() || str[0] == -1)
+        if (str.empty())
         {
             is_connected = false;
             break;
@@ -209,11 +209,20 @@ void XBee::readATCommand(std::string *buf, const char *command, int delay_ms)
     sendATCommand(command);
     delay(delay_ms);
     buf->clear();
+    bool receivedEOT = false;
     while (available())
     {
         char readChar = read();
-        if (readChar == '\r') continue;
+        if (readChar == '\r') 
+        {
+            receivedEOT = true;
+            break;
+        }
         buf->push_back(readChar);
+    }
+    if (!receivedEOT)
+    {
+        buf->clear();
     }
 }
 
