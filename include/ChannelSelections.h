@@ -2,10 +2,12 @@
 
 enum ChannelSelections {
     C,
-    F
+    F,
+    Null
 };
 
 enum BandwidthSelections {
     B555,
-    B3332
+    B3332,
+    BNull
 };

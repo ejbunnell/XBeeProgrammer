@@ -5,6 +5,12 @@ XBee::XBee(uint8_t uart_nr, int reset_pin, Display *display) : HardwareSerial(ua
 {
     this->reset_pin = reset_pin;
     this->display = display;
+    switch (uart_nr)
+    {
+        case 1: pinMode(9, INPUT_PULLUP); break;
+        case 2: pinMode(16, INPUT_PULLUP); break;
+        default: pinMode(3, INPUT_PULLUP); break;
+    }
     resetXBee();
 }
 
@@ -39,8 +45,6 @@ bool XBee::connect()
     {
         display->printOneLine("XBee was not found", 1000);
     }
-
-    
 
     return is_connected;
 }

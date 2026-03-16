@@ -4,15 +4,18 @@
 #include "Display.h"
 #include "XBee.h"
 #include "Debounce.h"
+#include "ToggleSwitch.h"
+#include "ChannelSelections.h"
 
 #define i2c_ADDRESS 0x3c // This specific display uses this address
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
 
-#define CHANNEL_IN_PIN 32 // The pin to connect the switch that toggles between channel 'C' and 'F'
-#define BANDWIDTH_IN_PIN 33 // The pin to connect the switch that toggles between bandwidth '555' and '3332'
-#define ACTION_PIN 25 // The pin to connect the button that both connects to the XBee and programs it with the selected settings
-
+#define ACTION_PIN 32 // The pin to connect the button that both connects to the XBee and programs it with the selected settings
+#define CHANNEL_C_PIN 27 // Toggles the channel selection to 'C' 
+#define CHANNEL_F_PIN 26 // Toggles the channel selection to 'F' 
+#define BANDWITDH_555_PIN 25 // Toggles the bandwitdh selection to '555' 
+#define BANDWIDTH_3332_PIN 33 // Toggles the bandwitdh selection to '3332' 
 
 #define RESET_PIN 7
 
@@ -23,8 +26,8 @@ Display display{SCREEN_WIDTH, SCREEN_HEIGHT};
 
 XBee xbee{2, RESET_PIN, &display};
 
-Debounce channelButton{CHANNEL_IN_PIN, DEBOUNCE_DELAY};
-Debounce bandwidthButton{BANDWIDTH_IN_PIN, DEBOUNCE_DELAY};
+ToggleSwitch<ChannelSelections> channelSwitch{CHANNEL_C_PIN, CHANNEL_F_PIN, ChannelSelections::C, ChannelSelections::F, ChannelSelections::Null};
+ToggleSwitch<BandwidthSelections> bandwidthSwitch{BANDWITDH_555_PIN, BANDWIDTH_3332_PIN, BandwidthSelections::B555, BandwidthSelections::B3332, BandwidthSelections::BNull};
 Debounce actionButton{ACTION_PIN, DEBOUNCE_DELAY};
 
 std::string currentChannel = "C";
@@ -51,15 +54,16 @@ void loop()
 {
 	if (xbee.isConnected())
 	{
-		if (channelButton.isPressed())
+		ChannelSelections newChannelSelection = channelSwitch.GetValueFromSwitch();
+		// Only change the selection if newChannelSelection exists; I.E., if not null
+		if (newChannelSelection != ChannelSelections::Null)
 		{
-			if (selectedChannel == ChannelSelections::C) selectedChannel = ChannelSelections::F;
-			else selectedChannel = ChannelSelections::C;
+			selectedChannel = newChannelSelection;
 		}
-		if (bandwidthButton.isPressed())
+		BandwidthSelections newBandwidthSelection = bandwidthSwitch.GetValueFromSwitch();
+		if (newBandwidthSelection != BandwidthSelections::BNull)
 		{
-			if (selectedBandwidth == BandwidthSelections::B555) selectedBandwidth = BandwidthSelections::B3332;
-			else selectedBandwidth = BandwidthSelections::B555;
+			selectedBandwidth = newBandwidthSelection;
 		}
 		if (actionButton.isPressed())
 		{
