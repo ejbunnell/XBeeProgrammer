@@ -24,7 +24,7 @@
 
 #define LATEST_FIRMWARE_VERSION "2014" // The latest firmware version for 802.15.4
 // Found at file:///C:/Users/Elliott/AppData/Local/Digi/XCTU-NG/radio_firmwares/XB3-24A/93001305_L.pdf
-const std::array<const std::string, 3> allowedFirmwareVersions = {"2014", "2012", "200D"}; // The firmware versions that this program can work with. If the XBee has a firmware version not in this list, the program will attempt to update it to the latest version, which is at index 0
+const std::array<const std::string, 11> allowedFirmwareVersions = {"2014", "2012", "200D", "200C", "200B", "200A", "2006", "2005", "2003", "2002", "2001"}; // The firmware versions that this program can work with. If the XBee has a firmware version not in this list, the program will attempt to update it to the latest version, which is at index 0
 
 extern const uint8_t _binary_data_firmware_gbl_start[] asm("_binary_data_firmware" LATEST_FIRMWARE_VERSION "_gbl_start");
 extern const uint8_t _binary_data_firmware_gbl_end[] asm("_binary_data_firmware" LATEST_FIRMWARE_VERSION "_gbl_end");
