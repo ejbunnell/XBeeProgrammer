@@ -1,15 +1,20 @@
 #include "XBee.h"
 
-
 XBee::XBee(uint8_t uart_nr, int reset_pin, Display *display) : HardwareSerial(uart_nr)
 {
     this->reset_pin = reset_pin;
     this->display = display;
     switch (uart_nr)
     {
-        case 1: pinMode(9, INPUT_PULLUP); break;
-        case 2: pinMode(16, INPUT_PULLUP); break;
-        default: pinMode(3, INPUT_PULLUP); break;
+    case 1:
+        pinMode(9, INPUT_PULLUP);
+        break;
+    case 2:
+        pinMode(16, INPUT_PULLUP);
+        break;
+    default:
+        pinMode(3, INPUT_PULLUP);
+        break;
     }
     resetXBee();
 }
@@ -24,6 +29,7 @@ bool XBee::connect()
     write("+++");
     display->displayDots(1100);
 
+    // If connected, the XBee will respond with "OK\r". If not, there will be no response and the program will move on after the delay
     if (available())
     {
         if (find("OK"))
@@ -35,10 +41,11 @@ bool XBee::connect()
         else
         {
             display->printOneLine("XBee did not confirm entering Command Mode", 1000);
-
+            // If the XBee did not respond with "OK\r", a possible reason could be that it is stuck in bootloader mode.
+            // This can happen if the XBee is reset during a firmware upload, so we have to check.
             bool firmwareUpdateSuccess = updateFirmware(false);
-            
-            is_connected = firmwareUpdateSuccess;
+
+            is_connected = firmwareUpdateSuccess; // If the firmware update was successful, then we know that the XBee was stuck in bootloader mode, so we can consider it "connected" even though it did not respond to the original "+++" command
         }
     }
     else
@@ -46,7 +53,7 @@ bool XBee::connect()
         display->printOneLine("XBee was not found", 1000);
     }
 
-    return is_connected;
+    return isConnected();
 }
 
 bool XBee::isConnected()
@@ -57,9 +64,13 @@ bool XBee::isConnected()
 void XBee::program(ChannelSelections selectedChannel, BandwidthSelections selectedBandwidth)
 {
     if (selectedChannel == ChannelSelections::C)
+    {
         sendATCommand(CHANNEL_AT_CMD, "C");
+    }
     else
+    {
         sendATCommand(CHANNEL_AT_CMD, "F");
+    }
     sendATCommand(WRITE_AT_CMD);
     delay(50);
     while (available())
@@ -68,9 +79,13 @@ void XBee::program(ChannelSelections selectedChannel, BandwidthSelections select
     }
 
     if (selectedBandwidth == BandwidthSelections::B555)
+    {
         sendATCommand(BANDWIDTH_AT_CMD, "555");
+    }
     else
+    {
         sendATCommand(BANDWIDTH_AT_CMD, "3332");
+    }
     sendATCommand(WRITE_AT_CMD);
     delay(50);
     while (available())
@@ -113,7 +128,15 @@ bool XBee::updateFirmware(bool invokeBootloader)
     {
         std::vector<std::string> pingResults = ping();
         std::string currentFirmware = pingResults[2];
-        if (currentFirmware.compare(LATEST_FIRMWARE_VERSION) == 0) return true;
+        for (const std::string &allowedVersion : allowedFirmwareVersions)
+        {
+            if (currentFirmware.compare(allowedVersion) == 0)
+            {
+                display->printOneLine("XBee firmware is \ncompatible", 1000);
+                return true;
+            }
+        }
+        display->printOneLine(("Xbee firmware: " + currentFirmware + " \nis out of date").c_str(), 1000);
         display->printOneLine("Invoking \nBootloader Mode\n", 500);
 
         sendATCommand(INVOKE_BOOTLOADER_AT_CMD);
@@ -217,7 +240,7 @@ void XBee::readATCommand(std::string *buf, const char *command, int delay_ms)
     while (available())
     {
         char readChar = read();
-        if (readChar == '\r') 
+        if (readChar == '\r')
         {
             receivedEOT = true;
             break;
@@ -240,7 +263,8 @@ void XBee::resetXBee()
 uint16_t XBee::crc16(const uint8_t *buf, uint16_t len)
 {
     uint16_t crc = 0;
-    while (len--) {
+    while (len--)
+    {
         crc ^= (uint16_t)*buf++ << 8;
         for (uint8_t i = 0; i < 8; i++)
             crc = (crc & 0x8000) ? (crc << 1) ^ 0x1021 : crc << 1;
@@ -248,7 +272,7 @@ uint16_t XBee::crc16(const uint8_t *buf, uint16_t len)
     return crc;
 }
 
-bool XBee::sendXmodemFromFlash() 
+bool XBee::sendXmodemFromFlash()
 {
     const uint8_t *data = _binary_data_firmware_gbl_start;
     size_t length = _binary_data_firmware_gbl_end - _binary_data_firmware_gbl_start;
@@ -258,12 +282,15 @@ bool XBee::sendXmodemFromFlash()
 
     // Wait for 'C'
     unsigned long start = millis();
-    while (millis() - start < 5000) {
-        if (available() && read() == 'C') break;
+    while (millis() - start < 5000)
+    {
+        if (available() && read() == 'C')
+            break;
     }
     int count = 0;
     const int totalCount = std::ceil((float)length / 128.0f);
-    while (offset < length) {
+    while (offset < length)
+    {
         size_t chunk = min((size_t)128, length - offset);
         memset(packet, 0x1A, 128);
         memcpy(packet, data + offset, chunk);
@@ -280,26 +307,28 @@ bool XBee::sendXmodemFromFlash()
         // wait for ACK
         unsigned long t = millis();
         bool resendLastPacket = false;
-        while (millis() - t < 2000) 
+        while (millis() - t < 2000)
         {
             if (available())
             {
                 char resp = read();
-                if (resp == 0x06) break; // ACK
-                else if (resp == 0x15) 
+                if (resp == 0x06)
+                    break; // ACK
+                else if (resp == 0x15)
                 {
                     resendLastPacket = true; // NAK
                     break;
                 }
             }
         }
-        if (resendLastPacket) continue;
+        if (resendLastPacket)
+            continue;
 
         offset += chunk;
         block++;
-        
+
         count++;
-        
+
         display->clear();
         display->println(F("Updating firmware:"));
         display->printf("%4.2f%% done", (((float)count / (float)totalCount) * 100.0f));
@@ -312,8 +341,9 @@ bool XBee::sendXmodemFromFlash()
         if (available())
         {
             char resp = read();
-            if (resp == 0x06) return true;
-            else if (resp == 0x15) 
+            if (resp == 0x06)
+                return true;
+            else if (resp == 0x15)
             {
                 write(0x04); // EOT
             }
