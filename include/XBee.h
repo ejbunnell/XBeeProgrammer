@@ -52,7 +52,7 @@ private:
     void sendATCommand(const char *command, const char *parameters = NO_PARAMETERS);
     // Uses sendATCommand with no parameters, but waits for all the returning Serial data and puts it into the char buffer
     // The delayMs determines how long the program waits for the Serial signal to come back
-    // If there is no Serial data to be read, the program puts a -1 in index zero of the buffer
+    // If there is no Serial data to be read, the program empties the buffer, returing an empty string
     void readATCommand(std::string *buf, const char *command, int delay_ms);
 
     void resetXBee();
@@ -60,6 +60,8 @@ private:
     uint16_t crc16(const uint8_t *buf, uint16_t len);
 
     bool sendXmodemFromFlash();
+
+    void flushOutSerial();
 
     int reset_pin;
     bool is_connected = false;

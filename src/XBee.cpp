@@ -63,35 +63,15 @@ bool XBee::isConnected()
 
 void XBee::program(ChannelSelections selectedChannel, BandwidthSelections selectedBandwidth)
 {
-    if (selectedChannel == ChannelSelections::C)
-    {
-        sendATCommand(CHANNEL_AT_CMD, "C");
-    }
-    else
-    {
-        sendATCommand(CHANNEL_AT_CMD, "F");
-    }
+    sendATCommand(CHANNEL_AT_CMD, to_string(selectedChannel).c_str());
     sendATCommand(WRITE_AT_CMD);
     delay(50);
-    while (available())
-    {
-        read();
-    }
+    flushOutSerial();
 
-    if (selectedBandwidth == BandwidthSelections::B555)
-    {
-        sendATCommand(BANDWIDTH_AT_CMD, "555");
-    }
-    else
-    {
-        sendATCommand(BANDWIDTH_AT_CMD, "3332");
-    }
+    sendATCommand(BANDWIDTH_AT_CMD, to_string(selectedBandwidth).c_str());
     sendATCommand(WRITE_AT_CMD);
     delay(50);
-    while (available())
-    {
-        read();
-    }
+    flushOutSerial();
 }
 
 std::vector<std::string> XBee::ping()
@@ -110,6 +90,7 @@ std::vector<std::string> XBee::ping()
     readATCommand(&firmware, FIRMWARE_VERSION_AT_CMD, 40);
     results.push_back(firmware);
 
+    // If any of the results are empty, then we know that the XBee is no longer connected, so we set is_connected to false
     for (auto &str : results)
     {
         if (str.empty())
@@ -228,10 +209,7 @@ void XBee::sendATCommand(const char *command, const char *parameters)
 
 void XBee::readATCommand(std::string *buf, const char *command, int delay_ms)
 {
-    while (available())
-    {
-        read();
-    }
+    flushOutSerial();
 
     sendATCommand(command);
     delay(delay_ms);
@@ -348,5 +326,13 @@ bool XBee::sendXmodemFromFlash()
                 write(0x04); // EOT
             }
         }
+    }
+}
+
+void XBee::flushOutSerial()
+{
+    while (available())
+    {
+        read();
     }
 }
