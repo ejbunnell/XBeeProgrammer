@@ -14,7 +14,7 @@ bool Display::initiliaze(int i2c_address)
 }
 
 void Display::update(bool is_xbee_connected, std::string currentChannel, std::string currentBandwidth, std::string firmwareVersion,
-                     ChannelSelections selectedChannel, BandwidthSelections selectedBandwidth)
+                     Channel::Selections selectedChannel, Bandwidth::Selections selectedBandwidth)
 {
     if (is_xbee_connected)
     {
@@ -34,25 +34,25 @@ void Display::update(bool is_xbee_connected, std::string currentChannel, std::st
         print("     ");
         // Sets either normal or inverted depending on which is selected
 
-        setSelectedColor(ChannelSelections::C, selectedChannel);
+        setSelectedColor(Channel::Selections::C, selectedChannel);
         print(F(" C "));
 
         setColorInverted(false);
         print(F("      "));
 
-        setSelectedColor(ChannelSelections::F, selectedChannel);
+        setSelectedColor(Channel::Selections::F, selectedChannel);
         println(F(" F "));
 
         setColorInverted(false);
         println(F("Desired Bandwidth: ")); // 555 or 3332
         print(F("    "));
-        setSelectedColor(BandwidthSelections::B555, selectedBandwidth);
+        setSelectedColor(Bandwidth::Selections::B555, selectedBandwidth);
         print(F(" 555 "));
 
         setColorInverted(false);
         print(F("   "));
 
-        setSelectedColor(BandwidthSelections::B3332, selectedBandwidth);
+        setSelectedColor(Bandwidth::Selections::B3332, selectedBandwidth);
         println(F(" 3332 "));
         display();
     }

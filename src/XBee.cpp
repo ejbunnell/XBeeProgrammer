@@ -61,14 +61,14 @@ bool XBee::isConnected()
     return is_connected;
 }
 
-void XBee::program(ChannelSelections selectedChannel, BandwidthSelections selectedBandwidth)
+void XBee::program(Channel::Selections selectedChannel, Bandwidth::Selections selectedBandwidth)
 {
-    sendATCommand(CHANNEL_AT_CMD, to_string(selectedChannel).c_str());
+    sendATCommand(CHANNEL_AT_CMD, Channel::to_string(selectedChannel).c_str());
     sendATCommand(WRITE_AT_CMD);
     delay(50);
     flushOutSerial();
 
-    sendATCommand(BANDWIDTH_AT_CMD, to_string(selectedBandwidth).c_str());
+    sendATCommand(BANDWIDTH_AT_CMD, Bandwidth::to_string(selectedBandwidth).c_str());
     sendATCommand(WRITE_AT_CMD);
     delay(50);
     flushOutSerial();

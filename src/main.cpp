@@ -5,7 +5,7 @@
 #include "XBee.h"
 #include "Debounce.h"
 #include "ToggleSwitch.h"
-#include "ChannelSelections.h"
+#include "Selections.h"
 
 #define i2c_ADDRESS 0x3c // This specific display uses this address
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
@@ -26,16 +26,16 @@ Display display{SCREEN_WIDTH, SCREEN_HEIGHT};
 
 XBee xbee{2, RESET_PIN, &display};
 
-ToggleSwitch<ChannelSelections> channelSwitch{CHANNEL_C_PIN, CHANNEL_F_PIN, ChannelSelections::C, ChannelSelections::F, ChannelSelections::Null};
-ToggleSwitch<BandwidthSelections> bandwidthSwitch{BANDWITDH_555_PIN, BANDWIDTH_3332_PIN, BandwidthSelections::B555, BandwidthSelections::B3332, BandwidthSelections::BNull};
+ToggleSwitch<Channel::Selections> channelSwitch{CHANNEL_C_PIN, CHANNEL_F_PIN, Channel::Selections::C, Channel::Selections::F, Channel::Selections::Null};
+ToggleSwitch<Bandwidth::Selections> bandwidthSwitch{BANDWITDH_555_PIN, BANDWIDTH_3332_PIN, Bandwidth::Selections::B555, Bandwidth::Selections::B3332, Bandwidth::Selections::Null};
 Debounce actionButton{ACTION_PIN, DEBOUNCE_DELAY};
 
 std::string currentChannel = "C";
 std::string currentBandwidth = "555";
 std::string firmwareVersion = "2014";
 
-ChannelSelections selectedChannel = ChannelSelections::C;
-BandwidthSelections selectedBandwidth = BandwidthSelections::B555;
+Channel::Selections selectedChannel = Channel::Selections::C;
+Bandwidth::Selections selectedBandwidth = Bandwidth::Selections::B555;
 
 void setup()
 {
@@ -54,14 +54,14 @@ void loop()
 {
 	if (xbee.isConnected())
 	{
-		ChannelSelections newChannelSelection = channelSwitch.GetValueFromSwitch();
+		Channel::Selections newChannelSelection = channelSwitch.GetValueFromSwitch();
 		// Only change the selection if newChannelSelection exists; I.E., if not null
-		if (newChannelSelection != ChannelSelections::Null)
+		if (newChannelSelection != Channel::Selections::Null)
 		{
 			selectedChannel = newChannelSelection;
 		}
-		BandwidthSelections newBandwidthSelection = bandwidthSwitch.GetValueFromSwitch();
-		if (newBandwidthSelection != BandwidthSelections::BNull)
+		Bandwidth::Selections newBandwidthSelection = bandwidthSwitch.GetValueFromSwitch();
+		if (newBandwidthSelection != Bandwidth::Selections::Null)
 		{
 			selectedBandwidth = newBandwidthSelection;
 		}

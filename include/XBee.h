@@ -10,7 +10,7 @@
 
 #include "Display.h"
 
-#include "ChannelSelections.h"
+#include "Selections.h"
 
 #define COMMAND_CHARACTERS "+++" //  The default command character needed to enter command mode
 
@@ -40,7 +40,7 @@ public:
     // Returns whether the XBee is currently connected to the ESP32
     bool isConnected();
     // Takes the currently selected options for both channel and bandwidth and writes (WR) them to the XBee
-    void program(ChannelSelections selectedChannel, BandwidthSelections selectedBandwidth);
+    void program(Channel::Selections selectedChannel, Bandwidth::Selections selectedBandwidth);
     // Pings the XBee to both get the current values of the channel and bandwidth and the make sure that the XBee stays in Command Mode by pinging it within the Command Mode Timeout (CT)
     std::vector<std::string> ping();
     bool updateFirmware(bool invokeBootloader = true);
