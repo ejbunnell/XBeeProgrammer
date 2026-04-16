@@ -109,14 +109,13 @@ bool XBee::updateFirmware(bool invokeBootloader)
     {
         std::vector<std::string> pingResults = ping();
         std::string currentFirmware = pingResults[2];
-        for (const std::string &allowedVersion : allowedFirmwareVersions)
+
+        if (currentFirmware.find(ALLOWABLE_FIRMWARE_REGEX) != std::string::npos)
         {
-            if (currentFirmware.compare(allowedVersion) == 0)
-            {
-                display->printOneLine("XBee firmware is \ncompatible", 1000);
-                return true;
-            }
+            display->printOneLine("XBee firmware is \ncompatible", 1000);
+            return true;
         }
+        
         display->printOneLine(("Xbee firmware: " + currentFirmware + " \nis out of date").c_str(), 1000);
         display->printOneLine("Invoking \nBootloader Mode\n", 500);
 
