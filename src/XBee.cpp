@@ -36,10 +36,25 @@ bool XBee::connect()
         {
             is_connected = true;
             display->printOneLine("XBee has successfully entered Command Mode", 1000);
+            Serial.println("Successfully connected to XBee");
+            Serial.println("Pre-firmware update data: ");
+            std::string data;
+            readATCommand(&data, FIRMWARE_VERSION_AT_CMD, 40);
+            Serial.println(std::string("Firmware version: " + data).c_str());
+            readATCommand(&data, FIRMWARE_VERSION_LONG_AT_CMD, 1000);
+            Serial.println(std::string("Long firmware version: " + data).c_str());
+            readATCommand(&data, BOOTLOADER_VERSION_AT_CMD, 80);
+            Serial.println(std::string("Bootloader version: " + data).c_str());
+            readATCommand(&data, HARDWARE_VERSION_AT_CMD, 80);
+            Serial.println(std::string("Hardware version: " + data).c_str());
+
             updateFirmware();
         }
         else
         {
+            Serial.println("Serial communcation occured but no OK response received");
+            Serial.println("Possible that XBee is stuck in bootloader mode, attempting firmware update if so");
+            Serial.println("Serial output: " + readString());
             display->printOneLine("XBee did not confirm entering Command Mode", 1000);
             // If the XBee did not respond with "OK\r", a possible reason could be that it is stuck in bootloader mode.
             // This can happen if the XBee is reset during a firmware upload, so we have to check.
@@ -52,6 +67,8 @@ bool XBee::connect()
     {
         display->printOneLine("XBee was not found", 1000);
     }
+
+    Serial.println(is_connected ? "Successfully connected to XBee" : "Failed to connect to XBee");
 
     return isConnected();
 }
@@ -95,6 +112,7 @@ std::vector<std::string> XBee::ping()
     {
         if (str.empty())
         {
+            Serial.println("Ping failed, XBee is no longer responding");
             is_connected = false;
             break;
         }
@@ -110,6 +128,7 @@ bool XBee::updateFirmware(bool invokeBootloader)
         std::vector<std::string> pingResults = ping();
         std::string currentFirmware = pingResults[2];
 
+        #if not(TEST_MODE)
         if (currentFirmware.find(ALLOWABLE_FIRMWARE_REGEX) != std::string::npos)
         {
             display->printOneLine("XBee firmware is \ncompatible", 1000);
@@ -118,6 +137,16 @@ bool XBee::updateFirmware(bool invokeBootloader)
         
         display->printOneLine(("Xbee firmware: " + currentFirmware + " \nis out of date").c_str(), 1000);
         display->printOneLine("Invoking \nBootloader Mode\n", 500);
+        #else
+        Serial.println("Test mode enabled, checking if firmware is 1014");
+        if (currentFirmware.compare("1014") == 0)
+        {
+            display->printOneLine("XBee firmware is \ncompatible", 1000);
+            return true;
+        }
+        display->printOneLine(("Xbee firmware: " + currentFirmware + " \n is not for testing").c_str(), 1000);
+        display->printOneLine("Invoking \nBootloader Mode\n", 500);
+        #endif
 
         sendATCommand(INVOKE_BOOTLOADER_AT_CMD);
         updateBaudRate(115200);

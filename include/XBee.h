@@ -1,5 +1,7 @@
 #pragma once
 
+#define TEST_MODE false
+
 // C:\Users\Elliott\AppData\Local\Digi\XCTU-NG\radio_firmwares\XB3-24A\XB3-24A_2014-th.gbl --- location of the firmware file
 
 #include <Arduino.h>
@@ -19,15 +21,22 @@
 #define FIRMWARE_VERSION_AT_CMD "VR" // AT identifier for the firmware version command
 #define WRITE_AT_CMD "WR"            // AT identifier for the write-to-flash command
 #define INVOKE_BOOTLOADER_AT_CMD "%P"
+#define FIRMWARE_VERSION_LONG_AT_CMD "VL" // AT identifier for the long firmware version command
+#define BOOTLOADER_VERSION_AT_CMD "VH" // AT identifier for the bootloader version command
+#define HARDWARE_VERSION_AT_CMD "HV" // AT identifier for the hardware version command
 
 #define NO_PARAMETERS "____NO_PARAMETERS____" // A constant char array that allows the sendATCommand function to have a default value for parameters
 
 #define LATEST_FIRMWARE_VERSION "2014" // The latest firmware version for 802.15.4
-// Found at file:///C:/Users/Elliott/AppData/Local/Digi/XCTU-NG/radio_firmwares/XB3-24A/93001305_L.pdf
 #define ALLOWABLE_FIRMWARE_REGEX "20" // If the first two characyers of the firmware version are "20", then the firmware is allowable
 
+#if not(TEST_MODE)
 extern const uint8_t _binary_data_firmware_gbl_start[] asm("_binary_data_firmware" LATEST_FIRMWARE_VERSION "_gbl_start");
 extern const uint8_t _binary_data_firmware_gbl_end[] asm("_binary_data_firmware" LATEST_FIRMWARE_VERSION "_gbl_end");
+#else
+extern const uint8_t _binary_data_firmware_gbl_start[] asm("_binary_data_firmware1014_gbl_start");
+extern const uint8_t _binary_data_firmware_gbl_end[] asm("_binary_data_firmware1014_gbl_end");
+#endif
 
 class XBee : public HardwareSerial
 {

@@ -42,6 +42,14 @@ void setup()
 	Serial.begin(9600);
 	while (!Serial) {}
 
+	Serial.println("Loading XBee Programmer");
+	#if not(TEST_MODE)
+	Serial.println("Will automatically update any XBee that does not have a compatible (20xx) firmware version");
+	Serial.println("The most recent firmware version as of development is " LATEST_FIRMWARE_VERSION);
+	#else
+	Serial.println("Test mode enabled. Will automatically downgrade any XBee that does not have the 1014 firmware version");
+	#endif
+
 	xbee.begin(9600);
 	while (!xbee) {}
 
@@ -86,3 +94,5 @@ void loop()
 
 // // https://docs.digi.com//resources/documentation/digidocs/90002273/default.htm#concepts/c_90002273_start.htm?TocPath=Digi%2520XBee%25C2%25AE%25203%2520802.15.4%2520RF%2520Module%257C_____0
 // // "C:\Users\Elliott\AppData\Local\Digi\XCTU-NG\radio_firmwares\XB3-24A\XB3-24A_2014-th.gbl" -- firmware location
+
+// "C:\Users\Elliott\AppData\Local\Digi\XCTU-NG\radio_firmwares\XB3-24Z\XB3-24Z_1014-th.gbl" -- older firmware location, only for testing the update firmware function, not compatible with 802.15.4
