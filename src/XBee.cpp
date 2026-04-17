@@ -71,15 +71,33 @@ bool XBee::isConnected()
 
 void XBee::program(Channel::Selections selectedChannel, Bandwidth::Selections selectedBandwidth)
 {
-    sendATCommand(CHANNEL_AT_CMD, Channel::to_string(selectedChannel).c_str());
-    sendATCommand(WRITE_AT_CMD);
-    delay(50);
-    flushOutSerial();
+    if (selectedChannel != Channel::Selections::Null) 
+    {
+        sendATCommand(CHANNEL_AT_CMD, Channel::to_string(selectedChannel).c_str());
+        sendATCommand(WRITE_AT_CMD);
+        delay(50);
+        flushOutSerial();
+        Serial.println((std::string("Programming channel to ") + Channel::to_string(selectedChannel)).c_str());
+    }
+    else 
+    {
+        Serial.println("Not programming channel");
+    }
 
-    sendATCommand(BANDWIDTH_AT_CMD, Bandwidth::to_string(selectedBandwidth).c_str());
-    sendATCommand(WRITE_AT_CMD);
-    delay(50);
-    flushOutSerial();
+    if (selectedBandwidth != Bandwidth::Selections::Null)
+    {
+        sendATCommand(BANDWIDTH_AT_CMD, Bandwidth::to_string(selectedBandwidth).c_str());
+        sendATCommand(WRITE_AT_CMD);
+        delay(50);
+        flushOutSerial();
+        Serial.println((std::string("Programming bandwidth to ") + Bandwidth::to_string(selectedBandwidth)).c_str());
+    }
+    else
+    {
+        Serial.println("Not programming bandwidth");
+    }
+
+    
 }
 
 std::vector<std::string> XBee::ping()
@@ -130,7 +148,7 @@ bool XBee::updateFirmware(bool invokeBootloader)
         }
         Serial.println(String("Long firmware version: " + response).c_str());
         std::string longFirmwareVersion = response.c_str();
-        #if not(TEST_MODE)
+        #if not(FIRMWARE_TEST_MODE)
         if (longFirmwareVersion.find(ALLOWABLE_FIRMWARE_REGEX) != std::string::npos)
         {
             display->printOneLine("XBee firmware is \ncompatible", 500);

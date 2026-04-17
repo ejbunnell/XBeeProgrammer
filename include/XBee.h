@@ -1,6 +1,6 @@
 #pragma once
 
-#define TEST_MODE false
+#define FIRMWARE_TEST_MODE false
 
 // C:\Users\Elliott\AppData\Local\Digi\XCTU-NG\radio_firmwares\XB3-24A\XB3-24A_2014-th.gbl --- location of the firmware file
 
@@ -30,7 +30,7 @@
 #define LATEST_FIRMWARE_VERSION "2014" // The latest firmware version for 802.15.4
 #define ALLOWABLE_FIRMWARE_REGEX "802.15.4"
 
-#if not(TEST_MODE)
+#if not(FIRMWARE_TEST_MODE)
 extern const uint8_t _binary_data_firmware_gbl_start[] asm("_binary_data_firmware" LATEST_FIRMWARE_VERSION "_gbl_start");
 extern const uint8_t _binary_data_firmware_gbl_end[] asm("_binary_data_firmware" LATEST_FIRMWARE_VERSION "_gbl_end");
 #else

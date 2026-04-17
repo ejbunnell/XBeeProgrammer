@@ -31,26 +31,38 @@ void Display::update(bool is_xbee_connected, std::string currentChannel, std::st
         println();
 
         println(F("Desired Channel: ")); // C or F
-        print("     ");
+        print("    ");
         // Sets either normal or inverted depending on which is selected
 
         setSelectedColor(Channel::Selections::C, selectedChannel);
         print(F(" C "));
 
         setColorInverted(false);
-        print(F("      "));
+        print(F("  "));
+        
+        setSelectedColor(Channel::Selections::Null, selectedChannel);
+        print(F(" - "));
+        
+        setColorInverted(false);
+        print(F("  "));
 
         setSelectedColor(Channel::Selections::F, selectedChannel);
         println(F(" F "));
 
         setColorInverted(false);
         println(F("Desired Bandwidth: ")); // 555 or 3332
-        print(F("    "));
+        print(F("   "));
         setSelectedColor(Bandwidth::Selections::B555, selectedBandwidth);
         print(F(" 555 "));
 
         setColorInverted(false);
-        print(F("   "));
+        print(F(" "));
+        
+        setSelectedColor(Bandwidth::Selections::Null, selectedBandwidth);
+        print(F(" - "));
+        
+        setColorInverted(false);
+        print(F(" "));
 
         setSelectedColor(Bandwidth::Selections::B3332, selectedBandwidth);
         println(F(" 3332 "));

@@ -43,7 +43,7 @@ void setup()
 	while (!Serial) {}
 
 	Serial.println("Loading XBee Programmer");
-	#if not(TEST_MODE)
+	#if not(FIRMWARE_TEST_MODE)
 	Serial.println("Will automatically update any XBee that does not have a compatible (20xx) firmware version");
 	Serial.println("The most recent firmware version as of development is " LATEST_FIRMWARE_VERSION);
 	#else
@@ -62,17 +62,9 @@ void loop()
 {
 	if (xbee.isConnected())
 	{
-		Channel::Selections newChannelSelection = channelSwitch.GetValueFromSwitch();
-		// Only change the selection if newChannelSelection exists; I.E., if not null
-		if (newChannelSelection != Channel::Selections::Null)
-		{
-			selectedChannel = newChannelSelection;
-		}
-		Bandwidth::Selections newBandwidthSelection = bandwidthSwitch.GetValueFromSwitch();
-		if (newBandwidthSelection != Bandwidth::Selections::Null)
-		{
-			selectedBandwidth = newBandwidthSelection;
-		}
+		selectedChannel = channelSwitch.GetValueFromSwitch();
+		selectedBandwidth = bandwidthSwitch.GetValueFromSwitch();
+		
 		if (actionButton.isPressed())
 		{
 			xbee.program(selectedChannel, selectedBandwidth);
