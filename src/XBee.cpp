@@ -35,18 +35,9 @@ bool XBee::connect()
         if (find("OK"))
         {
             is_connected = true;
-            display->printOneLine("XBee has successfully entered Command Mode", 1000);
+            display->printOneLine("XBee has successfully entered Command Mode", 500);
             Serial.println("Successfully connected to XBee");
             Serial.println("Pre-firmware update data: ");
-            std::string data;
-            readATCommand(&data, FIRMWARE_VERSION_AT_CMD, 40);
-            Serial.println(std::string("Firmware version: " + data).c_str());
-            readATCommand(&data, FIRMWARE_VERSION_LONG_AT_CMD, 1000);
-            Serial.println(std::string("Long firmware version: " + data).c_str());
-            readATCommand(&data, BOOTLOADER_VERSION_AT_CMD, 80);
-            Serial.println(std::string("Bootloader version: " + data).c_str());
-            readATCommand(&data, HARDWARE_VERSION_AT_CMD, 80);
-            Serial.println(std::string("Hardware version: " + data).c_str());
 
             updateFirmware();
         }
@@ -128,10 +119,21 @@ bool XBee::updateFirmware(bool invokeBootloader)
         std::vector<std::string> pingResults = ping();
         std::string currentFirmware = pingResults[2];
 
-        #if not(TEST_MODE)
-        if (currentFirmware.find(ALLOWABLE_FIRMWARE_REGEX) != std::string::npos)
+        flushOutSerial();
+        sendATCommand(FIRMWARE_VERSION_LONG_AT_CMD);
+        delay(100);
+        String response;
+        while (available())
         {
-            display->printOneLine("XBee firmware is \ncompatible", 1000);
+            response += readStringUntil('\r');
+            response += '\n';
+        }
+        Serial.println(String("Long firmware version: " + response).c_str());
+        std::string longFirmwareVersion = response.c_str();
+        #if not(TEST_MODE)
+        if (longFirmwareVersion.find(ALLOWABLE_FIRMWARE_REGEX) != std::string::npos)
+        {
+            display->printOneLine("XBee firmware is \ncompatible", 500);
             return true;
         }
         
@@ -243,6 +245,7 @@ void XBee::readATCommand(std::string *buf, const char *command, int delay_ms)
     delay(delay_ms);
     buf->clear();
     bool receivedEOT = false;
+   
     while (available())
     {
         char readChar = read();

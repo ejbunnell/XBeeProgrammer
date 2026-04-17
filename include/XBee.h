@@ -28,7 +28,7 @@
 #define NO_PARAMETERS "____NO_PARAMETERS____" // A constant char array that allows the sendATCommand function to have a default value for parameters
 
 #define LATEST_FIRMWARE_VERSION "2014" // The latest firmware version for 802.15.4
-#define ALLOWABLE_FIRMWARE_REGEX "20" // If the first two characyers of the firmware version are "20", then the firmware is allowable
+#define ALLOWABLE_FIRMWARE_REGEX "802.15.4"
 
 #if not(TEST_MODE)
 extern const uint8_t _binary_data_firmware_gbl_start[] asm("_binary_data_firmware" LATEST_FIRMWARE_VERSION "_gbl_start");
