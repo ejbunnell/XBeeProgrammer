@@ -58,6 +58,9 @@ void setup()
 	xbee.connect();
 }
 
+uint32_t actionPressedTime = 0;
+bool hasUpdatedFirmware = false;
+
 void loop()
 {
 	if (xbee.isConnected())
@@ -65,10 +68,27 @@ void loop()
 		selectedChannel = channelSwitch.GetValueFromSwitch();
 		selectedBandwidth = bandwidthSwitch.GetValueFromSwitch();
 		
-		if (actionButton.isPressed())
+
+		if (actionButton.IsPressed())
 		{
-			xbee.program(selectedChannel, selectedBandwidth);
+			if (actionPressedTime == 0) actionPressedTime = millis();
+
+			if (!hasUpdatedFirmware && millis() - actionPressedTime >= 5000)
+			{
+				hasUpdatedFirmware = true;
+				xbee.updateFirmware();
+			}
 		}
+		else 
+		{
+			if (millis() - actionPressedTime >= 100)
+			{
+				xbee.program(selectedChannel, selectedBandwidth);
+			}
+			hasUpdatedFirmware = false;
+			actionPressedTime = 0;
+		}
+		
 
 		std::vector<std::string> pingResults = xbee.ping();
 		currentChannel = pingResults[0];
@@ -78,7 +98,7 @@ void loop()
 	}
 	else
 	{
-		if (actionButton.isPressed()) xbee.connect();
+		if (actionButton.IsPressedDebounce()) xbee.connect();
 	}
 	
 	display.update(xbee.isConnected(), currentChannel, currentBandwidth, firmwareVersion, selectedChannel, selectedBandwidth);

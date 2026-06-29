@@ -52,7 +52,7 @@ public:
     void program(Channel::Selections selectedChannel, Bandwidth::Selections selectedBandwidth);
     // Pings the XBee to both get the current values of the channel and bandwidth and the make sure that the XBee stays in Command Mode by pinging it within the Command Mode Timeout (CT)
     std::vector<std::string> ping();
-    bool updateFirmware(bool invokeBootloader = true);
+    bool updateFirmware(bool invokeBootloader = true, bool force = false);
 
 private:
     // Sends an AT command to the  Command is the two character identifier that the XBee uses to determine what to reply with or what to program

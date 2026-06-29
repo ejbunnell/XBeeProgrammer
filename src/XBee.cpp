@@ -130,43 +130,47 @@ std::vector<std::string> XBee::ping()
     return results;
 }
 
-bool XBee::updateFirmware(bool invokeBootloader)
+bool XBee::updateFirmware(bool invokeBootloader, bool force)
 {
     if (invokeBootloader)
     {
-        std::vector<std::string> pingResults = ping();
-        std::string currentFirmware = pingResults[2];
-
-        flushOutSerial();
-        sendATCommand(FIRMWARE_VERSION_LONG_AT_CMD);
-        delay(100);
-        String response;
-        while (available())
+        if (!force)
         {
-            response += readStringUntil('\r');
-            response += '\n';
-        }
-        Serial.println(String("Long firmware version: " + response).c_str());
-        std::string longFirmwareVersion = response.c_str();
-        #if not(FIRMWARE_TEST_MODE)
-        if (longFirmwareVersion.find(ALLOWABLE_FIRMWARE_REGEX) != std::string::npos)
-        {
-            display->printOneLine("XBee firmware is \ncompatible", 500);
-            return true;
-        }
+            std::vector<std::string> pingResults = ping();
+            std::string currentFirmware = pingResults[2];
+    
+            flushOutSerial();
+            sendATCommand(FIRMWARE_VERSION_LONG_AT_CMD);
+            delay(100);
+            String response;
+            while (available())
+            {
+                response += readStringUntil('\r');
+                response += '\n';
+            }
+            Serial.println(String("Long firmware version: " + response).c_str());
+            std::string longFirmwareVersion = response.c_str();
+            #if not(FIRMWARE_TEST_MODE)
         
-        display->printOneLine(("Xbee firmware: " + currentFirmware + " \nis out of date").c_str(), 1000);
-        display->printOneLine("Invoking \nBootloader Mode\n", 500);
-        #else
-        Serial.println("Test mode enabled, checking if firmware is 1014");
-        if (currentFirmware.compare("1014") == 0)
-        {
-            display->printOneLine("XBee firmware is \ncompatible", 1000);
-            return true;
+            if (longFirmwareVersion.find(ALLOWABLE_FIRMWARE_REGEX) != std::string::npos)
+            {
+                display->printOneLine("XBee firmware is \ncompatible", 500);
+                return true;
+            }
+            
+            display->printOneLine(("Xbee firmware: " + currentFirmware + " \nis out of date").c_str(), 1000);
+            display->printOneLine("Invoking \nBootloader Mode\n", 500);
+            #else
+            Serial.println("Test mode enabled, checking if firmware is 1014");
+            if (currentFirmware.compare("1014") == 0)
+            {
+                display->printOneLine("XBee firmware is \ncompatible", 1000);
+                return true;
+            }
+            display->printOneLine(("Xbee firmware: " + currentFirmware + " \n is not for testing").c_str(), 1000);
+            display->printOneLine("Invoking \nBootloader Mode\n", 500);
+            #endif
         }
-        display->printOneLine(("Xbee firmware: " + currentFirmware + " \n is not for testing").c_str(), 1000);
-        display->printOneLine("Invoking \nBootloader Mode\n", 500);
-        #endif
 
         sendATCommand(INVOKE_BOOTLOADER_AT_CMD);
         updateBaudRate(115200);
