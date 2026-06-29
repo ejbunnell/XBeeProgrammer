@@ -7,15 +7,20 @@ Debounce::Debounce(int pin, unsigned int debounceDelay) {
   this->debounceDelay = debounceDelay;
 }
 
-bool Debounce::isPressed()
+bool Debounce::IsPressedDebounce()
 {
-    return getState() == LOW;
+    return GetState() == LOW;
+}
+
+bool Debounce::IsPressed()
+{
+    return digitalRead(pin) == LOW;
 }
 
 // Gets the current state of the input after applying a debounce
 // If digitalRead returns HIGH, it will return HIGH
 // If digitalRead returns LOW, it will determine if it has returned LOW within the debounceDelay. If it has, then it will return LOW
-int Debounce::getState() {
+int Debounce::GetState() {
   int reading = digitalRead(pin);
 
   if (canReadLow) state = reading;

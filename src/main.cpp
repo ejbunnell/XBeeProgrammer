@@ -50,13 +50,16 @@ void setup()
 	Serial.println("Test mode enabled. Will automatically downgrade any XBee that does not have the 1014 firmware version");
 	#endif
 
-	xbee.begin(9600);
+	xbee.begin(9600, 134217756UL, 16, 17);
 	while (!xbee) {}
 
 	if (!display.initiliaze(i2c_ADDRESS)) throw "Display did not initialize properly";
 
 	xbee.connect();
 }
+
+uint32_t actionPressedTime = 0;
+bool hasUpdatedFirmware = false;
 
 void loop()
 {
@@ -65,10 +68,29 @@ void loop()
 		selectedChannel = channelSwitch.GetValueFromSwitch();
 		selectedBandwidth = bandwidthSwitch.GetValueFromSwitch();
 		
-		if (actionButton.isPressed())
+
+		if (actionButton.IsPressed())
 		{
-			xbee.program(selectedChannel, selectedBandwidth);
+			if (actionPressedTime == 0) actionPressedTime = millis();
+
+			// If pressed for more than 5 seconds -- only 1 time
+			if (!hasUpdatedFirmware && millis() - actionPressedTime >= 5000)
+			{
+				hasUpdatedFirmware = true;
+				xbee.updateFirmware(true, true);
+			}
 		}
+		else 
+		{
+			// If pressed for more than 100 ms
+			if (actionPressedTime >= 100)
+			{
+				xbee.program(selectedChannel, selectedBandwidth);
+			}
+			hasUpdatedFirmware = false;
+			actionPressedTime = 0;
+		}
+		
 
 		std::vector<std::string> pingResults = xbee.ping();
 		currentChannel = pingResults[0];
@@ -78,7 +100,7 @@ void loop()
 	}
 	else
 	{
-		if (actionButton.isPressed()) xbee.connect();
+		if (actionButton.IsPressedDebounce()) xbee.connect();
 	}
 	
 	display.update(xbee.isConnected(), currentChannel, currentBandwidth, firmwareVersion, selectedChannel, selectedBandwidth);

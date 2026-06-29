@@ -24,6 +24,7 @@
 #define FIRMWARE_VERSION_LONG_AT_CMD "VL" // AT identifier for the long firmware version command
 #define BOOTLOADER_VERSION_AT_CMD "VH" // AT identifier for the bootloader version command
 #define HARDWARE_VERSION_AT_CMD "HV" // AT identifier for the hardware version command
+#define SOURCE_ADDRESS_AT_CMD "MY" // AT identifier for the source address
 
 #define NO_PARAMETERS "____NO_PARAMETERS____" // A constant char array that allows the sendATCommand function to have a default value for parameters
 
@@ -52,7 +53,7 @@ public:
     void program(Channel::Selections selectedChannel, Bandwidth::Selections selectedBandwidth);
     // Pings the XBee to both get the current values of the channel and bandwidth and the make sure that the XBee stays in Command Mode by pinging it within the Command Mode Timeout (CT)
     std::vector<std::string> ping();
-    bool updateFirmware(bool invokeBootloader = true);
+    bool updateFirmware(bool invokeBootloader = true, bool force = false);
 
 private:
     // Sends an AT command to the  Command is the two character identifier that the XBee uses to determine what to reply with or what to program
