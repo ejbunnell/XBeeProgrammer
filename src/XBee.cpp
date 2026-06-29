@@ -37,8 +37,8 @@ bool XBee::connect()
             is_connected = true;
             display->printOneLine("XBee has successfully entered Command Mode", 500);
             Serial.println("Successfully connected to XBee");
-            Serial.println("Pre-firmware update data: ");
-
+            Serial.println("Pre-firmware update data: ");            
+            sendATCommand(SOURCE_ADDRESS_AT_CMD, std::string{"0"}.c_str());
             updateFirmware();
         }
         else

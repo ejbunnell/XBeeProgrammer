@@ -50,7 +50,7 @@ void setup()
 	Serial.println("Test mode enabled. Will automatically downgrade any XBee that does not have the 1014 firmware version");
 	#endif
 
-	xbee.begin(9600);
+	xbee.begin(9600, 134217756UL, 16, 17);
 	while (!xbee) {}
 
 	if (!display.initiliaze(i2c_ADDRESS)) throw "Display did not initialize properly";
@@ -73,15 +73,17 @@ void loop()
 		{
 			if (actionPressedTime == 0) actionPressedTime = millis();
 
+			// If pressed for more than 5 seconds -- only 1 time
 			if (!hasUpdatedFirmware && millis() - actionPressedTime >= 5000)
 			{
 				hasUpdatedFirmware = true;
-				xbee.updateFirmware();
+				xbee.updateFirmware(true, true);
 			}
 		}
 		else 
 		{
-			if (millis() - actionPressedTime >= 100)
+			// If pressed for more than 100 ms
+			if (actionPressedTime >= 100)
 			{
 				xbee.program(selectedChannel, selectedBandwidth);
 			}

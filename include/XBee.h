@@ -24,6 +24,7 @@
 #define FIRMWARE_VERSION_LONG_AT_CMD "VL" // AT identifier for the long firmware version command
 #define BOOTLOADER_VERSION_AT_CMD "VH" // AT identifier for the bootloader version command
 #define HARDWARE_VERSION_AT_CMD "HV" // AT identifier for the hardware version command
+#define SOURCE_ADDRESS_AT_CMD "MY" // AT identifier for the source address
 
 #define NO_PARAMETERS "____NO_PARAMETERS____" // A constant char array that allows the sendATCommand function to have a default value for parameters
 
